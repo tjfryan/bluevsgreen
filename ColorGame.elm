@@ -4,12 +4,17 @@ import Html exposing (..)
 import Html.Events exposing (onClick)
 import Color exposing (Color, rgb, toRgb)
 import Element exposing (..)
+import Random exposing (Generator, Seed, bool, step, initialSeed)
 
 -- MODEL
 
 type alias Model =
     { upper : Color
     , lower : Color
+    , gameStarted : Bool
+    , tries: Int
+    , successes: Int
+    , seed: Seed
     }
 
 -- UPDATE
@@ -18,6 +23,8 @@ type Msg
     = Reset
     | BoundUpper Color
     | BoundLower Color
+    | StartGame
+    | Guess ColorOption ColorOption
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = (
@@ -25,41 +32,85 @@ update msg model = (
         Reset -> initialState
         BoundUpper upper -> { model | upper = upper }
         BoundLower lower -> { model | lower = lower }
+        StartGame -> { model | gameStarted = True }
+        Guess real guess ->
+            { model
+            | tries = model.tries + 1
+            , successes = model.successes + if real == guess then 1 else 0
+            , seed = (\(_, x) -> x) (step colorChooser model.seed)
+            }
     ) ! []
 
 -- VIEW
 
 square : Color -> Html Msg
 square color_ =
-    toHtml (
-        size 200 200 (color color_ empty)
-    )
+    toHtml (size 200 200 (color color_ empty))
+
+break : Html Msg
+break = br [] []
+
+phase1 : Model -> Html Msg
+phase1 model =
+    case closeEnough model.upper model.lower of
+        False ->
+            let middle = average model.upper model.lower
+            in
+                div []
+                    [ square middle
+                    , div []
+                        [ button [ onClick (BoundUpper middle) ] [ text "Green"]
+                        , button [ onClick (BoundLower middle) ] [ text "Blue"]
+                        ]
+                    ]
+        True ->
+            div []
+                [ text "You found the difference between blue and green!"
+                , div []
+                    [ text "Blue: "
+                    , break
+                    , square model.lower
+                    , break
+                    , text "Green: "
+                    , break
+                    , square model.upper
+                    ]
+                , button [ onClick StartGame ] [ text "Start Game" ]
+                ]
+
+phase2 : Model -> Html Msg
+phase2 model =
+    let
+        (colorOption, _) = step colorChooser model.seed
+        color_ =
+            case colorOption of
+                Blue -> model.lower
+                Green -> model.upper
+    in
+        div []
+            [ text "What color is this?"
+            , break
+            , square color_
+            , break
+            , text ("Accuracy rate: " ++ (toString model.successes) ++ "/" ++ (toString model.tries))
+            , break
+            , button [ onClick (Guess colorOption Green) ] [ text "Green" ]
+            , button [ onClick (Guess colorOption Blue) ] [ text "Blue" ]
+            ]
 
 view : Model -> Html Msg
 view model =
-    case closeEnough model.upper model.lower of
-    False ->
-      let middle = average model.upper model.lower
-      in
-          div []
-              [ square middle
-              , div []
-                  [ button [onClick (BoundUpper middle)] [ text "Green"]
-                  , button [onClick (BoundLower middle)] [ text "Blue"]
-                  ]
-              ]
-    True ->
-        div []
-            [ text "You found the difference between blue and green!"
-            , div []
-                [ text "Blue: "
-                , square model.lower
-                , text "Green: "
-                , square model.upper
-                ]
-            ]
+    case model.gameStarted of
+        False -> phase1 model
+        True -> phase2 model
 
 -- LOGIC
+
+type ColorOption = Blue | Green
+
+colorChooser : Generator ColorOption
+colorChooser =
+    Random.map (\b -> if b then Blue else Green) bool
 
 average : Color -> Color -> Color
 average a b =
@@ -86,6 +137,10 @@ initialState: Model
 initialState =
     { upper = rgb 0 255 0
     , lower = rgb 0 0 255
+    , gameStarted = False
+    , tries = 0
+    , successes = 0
+    , seed = initialSeed 0
     }
 
 init : (Model, Cmd Msg)
