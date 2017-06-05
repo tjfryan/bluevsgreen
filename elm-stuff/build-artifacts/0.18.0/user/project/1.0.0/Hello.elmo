@@ -1,0 +1,156 @@
+var _user$project$Hello$initialState = {
+	upper: A3(_elm_lang$core$Color$rgb, 0, 255, 0),
+	lower: A3(_elm_lang$core$Color$rgb, 0, 0, 255)
+};
+var _user$project$Hello$init = A2(
+	_elm_lang$core$Platform_Cmd_ops['!'],
+	_user$project$Hello$initialState,
+	{ctor: '[]'});
+var _user$project$Hello$closeEnough = F2(
+	function (a, b) {
+		var b_ = _elm_lang$core$Color$toRgb(b);
+		var a_ = _elm_lang$core$Color$toRgb(a);
+		return _elm_lang$core$Native_Utils.eq(
+			(_elm_lang$core$Basics$abs(a_.red - b_.red) + _elm_lang$core$Basics$abs(a_.green - b_.green)) + _elm_lang$core$Basics$abs(a_.blue - b_.blue),
+			1);
+	});
+var _user$project$Hello$average = F2(
+	function (a, b) {
+		var b_ = _elm_lang$core$Color$toRgb(b);
+		var a_ = _elm_lang$core$Color$toRgb(a);
+		return A3(_elm_lang$core$Color$rgb, ((a_.red + b_.red) / 2) | 0, ((a_.green + b_.green) / 2) | 0, ((a_.blue + b_.blue) / 2) | 0);
+	});
+var _user$project$Hello$square = function (color_) {
+	return _evancz$elm_graphics$Element$toHtml(
+		A3(
+			_evancz$elm_graphics$Element$size,
+			200,
+			200,
+			A2(_evancz$elm_graphics$Element$color, color_, _evancz$elm_graphics$Element$empty)));
+};
+var _user$project$Hello$update = F2(
+	function (msg, model) {
+		return A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			function () {
+				var _p0 = msg;
+				switch (_p0.ctor) {
+					case 'Reset':
+						return _user$project$Hello$initialState;
+					case 'BoundUpper':
+						return _elm_lang$core$Native_Utils.update(
+							model,
+							{upper: _p0._0});
+					default:
+						return _elm_lang$core$Native_Utils.update(
+							model,
+							{lower: _p0._0});
+				}
+			}(),
+			{ctor: '[]'});
+	});
+var _user$project$Hello$Model = F2(
+	function (a, b) {
+		return {upper: a, lower: b};
+	});
+var _user$project$Hello$BoundLower = function (a) {
+	return {ctor: 'BoundLower', _0: a};
+};
+var _user$project$Hello$BoundUpper = function (a) {
+	return {ctor: 'BoundUpper', _0: a};
+};
+var _user$project$Hello$view = function (model) {
+	var _p1 = A2(_user$project$Hello$closeEnough, model.upper, model.lower);
+	if (_p1 === false) {
+		var middle = A2(_user$project$Hello$average, model.upper, model.lower);
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _user$project$Hello$square(middle),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$button,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$Hello$BoundUpper(middle)),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Green'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$button,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(
+											_user$project$Hello$BoundLower(middle)),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Blue'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('You found the difference between blue and green!'),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Blue: '),
+							_1: {
+								ctor: '::',
+								_0: _user$project$Hello$square(model.lower),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Green: '),
+									_1: {
+										ctor: '::',
+										_0: _user$project$Hello$square(model.upper),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	}
+};
+var _user$project$Hello$main = _elm_lang$html$Html$program(
+	{
+		init: _user$project$Hello$init,
+		subscriptions: function (_p2) {
+			return _elm_lang$core$Platform_Sub$none;
+		},
+		update: _user$project$Hello$update,
+		view: _user$project$Hello$view
+	})();
+var _user$project$Hello$Reset = {ctor: 'Reset'};
