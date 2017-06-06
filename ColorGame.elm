@@ -5,6 +5,9 @@ import Html.Events exposing (onClick)
 import Color exposing (Color, rgb, toRgb)
 import Element exposing (..)
 import Random exposing (Generator, Seed, bool, step, initialSeed)
+import Time exposing (now, millisecond)
+import Task exposing (perform)
+
 
 -- MODEL
 
@@ -25,6 +28,7 @@ type Msg
     | BoundLower Color
     | StartGame
     | Guess ColorOption ColorOption
+    | SetSeed Seed
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = (
@@ -39,6 +43,7 @@ update msg model = (
             , successes = model.successes + if real == guess then 1 else 0
             , seed = (\(_, x) -> x) (step colorChooser model.seed)
             }
+        SetSeed seed -> { model | seed = seed }
     ) ! []
 
 -- VIEW
@@ -57,7 +62,8 @@ phase1 model =
             let middle = average model.upper model.lower
             in
                 div []
-                    [ square middle
+                    [ text "What color is this?"
+                    , square middle
                     , div []
                         [ button [ onClick (BoundUpper middle) ] [ text "Green"]
                         , button [ onClick (BoundLower middle) ] [ text "Blue"]
@@ -144,7 +150,9 @@ initialState =
     }
 
 init : (Model, Cmd Msg)
-init = initialState ! []
+init = initialState !
+       [ perform (\time -> SetSeed (initialSeed (round (time / millisecond)))) now
+       ]
 
 main : Program Never Model Msg
 main =
